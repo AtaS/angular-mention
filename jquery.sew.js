@@ -10,8 +10,8 @@
 		element.text(value.val);
 	};
 
-	var pluginName = 'sew',
-		defaults = {
+	var pluginName = 'sew';
+	var defaults = {
 			token: '@',
 			elementFactory: elementFactory,
 			values: [],
