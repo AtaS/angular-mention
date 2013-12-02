@@ -10,8 +10,8 @@
 		element.text(value.val);
 	};
 
-	var pluginName = 'sew';
-	var defaults = {
+	var pluginName = 'sew',
+		defaults = {
 			token: '@',
 			elementFactory: elementFactory,
 			values: [],
@@ -45,11 +45,10 @@
 	Plugin.prototype.init = function () {
 		if(this.options.values.length < 1) return;
 
-		this.$element
-									.bind('keyup', $.proxy(this.onKeyUp, this))
-									.bind('keydown', $.proxy(this.onKeyDown, this))
-									.bind('focus', $.proxy(this.renderElements, this, this.options.values))
-									.bind('blur', $.proxy(this.remove, this));
+		this.$element.bind('keyup', $.proxy(this.onKeyUp, this));
+		this.$element.bind('keydown', $.proxy(this.onKeyDown, this));
+		this.$element.bind('focus', $.proxy(this.renderElements, this, this.options.values));
+		this.$element.bind('blur', $.proxy(this.remove, this));
 	};
 
 	Plugin.prototype.reset = function () {
