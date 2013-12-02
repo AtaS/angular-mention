@@ -63,21 +63,21 @@
 	// 	this.filtered = this.options.values.slice(0);
 	// };
 
-	Plugin.prototype.next = function () {
-		this.index = (this.index + 1) % this.filtered.length;
-		this.hightlightItem();
-	};
+	// Plugin.prototype.next = function () {
+	// 	this.index = (this.index + 1) % this.filtered.length;
+	// 	this.hightlightItem();
+	// };
 
-	Plugin.prototype.prev = function () {
-		this.index = (this.index + this.filtered.length - 1) % this.filtered.length;
-		this.hightlightItem();
-	};
+	// Plugin.prototype.prev = function () {
+	// 	this.index = (this.index + this.filtered.length - 1) % this.filtered.length;
+	// 	this.hightlightItem();
+	// };
 
-	Plugin.prototype.select = function () {
-		this.replace(this.filtered[this.index].val);
-		this.$element.trigger('mention-selected',this.filtered[this.index]);
-		this.hideList();
-	};
+	// Plugin.prototype.select = function () {
+	// 	this.replace(this.filtered[this.index].val);
+	// 	this.$element.trigger('mention-selected',this.filtered[this.index]);
+	// 	this.hideList();
+	// };
 
 	Plugin.prototype.remove = function () {
 		this.$itemList.fadeOut('slow');
@@ -186,9 +186,9 @@
 	// 	return target;
 	// };
 
-	Plugin.prototype.getText = function () {
-		return(this.$element.val() || this.$element.text());
-	};
+	// Plugin.prototype.getText = function () {
+	// 	return(this.$element.val() || this.$element.text());
+	// };
 
 	Plugin.prototype.setText = function (text) {
 		if(this.$element.is('input,textarea')) {
