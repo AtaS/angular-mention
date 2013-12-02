@@ -1,11 +1,16 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="stylesheet" type="text/css" href="demo/demo.css" />
     <script src='angular.js'></script>
     <script src='angular-sew.js'></script>
   </head>
   <body>
-    <textarea typeahead='userlist'></textarea>
+    <!-- ng-trim: http://stackoverflow.com/questions/14958418/how-to-disable-trimming-of-inputs-in-angularjs -->
+    <div typeahead='userlist'><textarea ng-model='input' ng-trim='false'></textarea></div>
+    <div typeahead='userlist'><textarea ng-model='input' ng-trim='false'></textarea></div>
     <script>
       angular.bootstrap(document.getElementsByTagName('body')[0],['angular-sew']);
     </script>
