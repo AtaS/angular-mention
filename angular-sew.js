@@ -15,13 +15,29 @@ sew.service('sew_input', function () {
   };
 });
 
+var CSS_CONSTANTS = {
+  container: '-sew-list-container',
+  list: '-sew-list',
+  listItem: '-sew-list-item',
+  selected: 'selected'
+};
+
+var LIST_DATA = {
+  token: 'nickname',
+  longform: 'name',
+  id: 'nid'
+};
+
+var LIST_ITEM_TEMPLATE = "<div><span>@{{v." + LIST_DATA.token + "}}</span>&nbsp;<small>({{v." + LIST_DATA.longform + "}})</small></div>";
+
+var LIST_TEMPLATE = "<div><div class='" + CSS_CONSTANTS.container + "' style='display: none; position: absolute;'><ul class='" + CSS_CONSTANTS.list + "'><li ng-repeat='v in values | filter:mention' ng-click='choose(\"{{v." + LIST_DATA.token + "}}\")' ng-Mouseover='onhover($event)' class='" + CSS_CONSTANTS.listItem + "'>" + LIST_ITEM_TEMPLATE + "</li></ul></div><div ng-transclude></div></div>";
+
 sew.directive('typeahead', function () {
   return {
     restrict: 'A',
     replace: true,
     transclude: true,
-    template: "<div><div class='-sew-list-container' style='display: none; position: absolute;'><ul class='-sew-list'><li ng-repeat='v in values | filter:mention' ng-click='choose(\"{{v.nickname}}\")' ng-Mouseover='onhover($event)' class='-sew-list-item'><div><span>@{{v.nickname}}</span>&nbsp;<small>({{v.name}})</small></div></li></ul></div><div ng-transclude></div></div>",
-//    templateUrl: 'sew.html',
+    template: LIST_TEMPLATE,
     scope: {
       typeahead: '@'
     },
@@ -51,20 +67,23 @@ sew.directive('typeahead', function () {
       };
 
       $scope.onhover = function (obj) {
-        obj.stopPropagation();
-        $log.debug('[Event] mouseover: ', obj);
-        var li = angular.element(obj.srcElement);
-        if (li.hasClass('-sew-list-item')) {
-          var lis = $scope.getChoices();
-          lis.removeClass('selected');
-          li.addClass('selected');
-          angular.forEach(lis, function (li, i) {
-            if (angular.element(li).hasClass('selected')) {
-              $scope.focusIndex = i;
-            }
-          });
-          //li[0].scrollIntoView();
+        var source = angular.element(obj.srcElement);
+        if (!source.hasClass(CSS_CONSTANTS.listItem)) {
+          return;
         }
+        
+        // $log.debug('[Event] mouseover: ', obj);
+
+        var lis = $scope.getChoices();
+        lis.removeClass(CSS_CONSTANTS.selected);
+        source.addClass(CSS_CONSTANTS.selected);
+
+        angular.forEach(lis, function (li, i) {
+          if (angular.element(li).hasClass(CSS_CONSTANTS.selected)) {
+            $scope.focusIndex = i;
+          }
+        });
+        //source[0].scrollIntoView();
       };
 
       $scope.choose = function (selection) {
@@ -98,7 +117,7 @@ sew.directive('typeahead', function () {
       $scope.hideList = function () {
         $scope.$itemList.style.display = 'none';
         var lis = $scope.getChoices();
-        lis.removeClass('selected');
+        lis.removeClass(CSS_CONSTANTS.selected);
         $scope.reset();
       };
 
@@ -108,15 +127,10 @@ sew.directive('typeahead', function () {
         $scope.focusIndex = false;
 
         var offset = $scope.element.getBoundingClientRect();
-        // var pos = getCursorPos($scope.element);
-        // console.log('pos', pos);
-        // console.log('left: ', offset.left);//, '+', pos.left);
-        // console.log('top: ', offset.top);//, '+', pos.top);
-        // console.log('bottom: ', offset.bottom);//, '+', pos.top);
-        $scope.$itemList.style.left = offset.left + 'px';// + pos.left;
-        $scope.$itemList.style.top = offset.bottom + 'px';// + pos.top;
+        $scope.$itemList.style.left = offset.left + 'px';
+        $scope.$itemList.style.top = offset.bottom + 'px';
         var lis = $scope.getChoices();
-        lis.removeClass('selected');
+        lis.removeClass(CSS_CONSTANTS.selected);
       };
 
 
@@ -125,43 +139,43 @@ sew.directive('typeahead', function () {
 
 
       $scope.tab = function ($event) {
-        $log.debug('[Event] KeyDown: tab');
+        // $log.debug('[Event] KeyDown: tab');
         var lis = $scope.getChoices();
         angular.element(lis[$scope.focusIndex]).triggerHandler('click');
       };
 
       $scope.enter = function ($event) {
-        $log.debug('[Event] KeyDown: return');
+        // $log.debug('[Event] KeyDown: return');
         var lis = $scope.getChoices();
         angular.element(lis[$scope.focusIndex]).triggerHandler('click');
       };
 
       $scope.escape = function ($event) {
-        $log.debug('[Event] KeyDown: escape');
+        // $log.debug('[Event] KeyDown: escape');
         $scope.hideList();
       };
 
       $scope.upArrow = function ($event) {
-        $log.debug('[Event] KeyDown: upArrow');
+        // $log.debug('[Event] KeyDown: upArrow');
         var lis = $scope.getChoices();
         if ($scope.focusIndex === false) {
           $scope.focusIndex = 0;
         }
         $scope.focusIndex = ($scope.focusIndex + lis.length - 1) % lis.length;
-        lis.removeClass('selected');
-        angular.element(lis[$scope.focusIndex]).addClass('selected');
+        lis.removeClass(CSS_CONSTANTS.selected);
+        angular.element(lis[$scope.focusIndex]).addClass(CSS_CONSTANTS.selected);
         lis[$scope.focusIndex].scrollIntoView();
       };
 
       $scope.downArrow = function ($event) {
-        $log.debug('[Event] KeyDown: downArrow');
+        // $log.debug('[Event] KeyDown: downArrow');
         var lis = $scope.getChoices();
         if ($scope.focusIndex === false) {
           $scope.focusIndex = -1;
         }
         $scope.focusIndex = ($scope.focusIndex + 1) % lis.length;
-        lis.removeClass('selected');
-        angular.element(lis[$scope.focusIndex]).addClass('selected');
+        lis.removeClass(CSS_CONSTANTS.selected);
+        angular.element(lis[$scope.focusIndex]).addClass(CSS_CONSTANTS.selected);
         lis[$scope.focusIndex].scrollIntoView();
       };
 
@@ -204,7 +218,7 @@ sew.directive('typeahead', function () {
       });
 
 
-      $scope.$itemList = angular.element($element[0].querySelector('.-sew-list-container'))[0];
+      $scope.$itemList = angular.element($element[0].querySelector('.' + CSS_CONSTANTS.container))[0];
       $scope.textElement = $element[0].children[1].children[0];
       $scope.$$nextSibling.$watch('input', function (newVal, oldVal) {
         if (typeof newVal == 'undefined') {
@@ -216,7 +230,7 @@ sew.directive('typeahead', function () {
         var matches = text.match(REGEX);
 
         var lis = $scope.getChoices();
-        lis.removeClass('selected');
+        lis.removeClass(CSS_CONSTANTS.selected);
         $scope.focusIndex = false;
 
 

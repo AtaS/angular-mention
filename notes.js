@@ -4,7 +4,7 @@
  * @author leChantaux (@leChantaux)
  */
 
-(function ($, window, undefined) {
+// (function ($, window, undefined) {
 	// Create the defaults once
 	// var elementFactory = function (element, value) {
 	// 	element.text(value.val);
@@ -79,38 +79,38 @@
 	// 	this.hideList();
 	// };
 
-	Plugin.prototype.remove = function () {
-		this.$itemList.fadeOut('slow');
+	// Plugin.prototype.remove = function () {
+	// 	this.$itemList.fadeOut('slow');
 
-		this.cleanupHandle = window.setTimeout($.proxy(function () {
-			this.$itemList.remove();
-		}, this), 1000);
-	};
+	// 	this.cleanupHandle = window.setTimeout($.proxy(function () {
+	// 		this.$itemList.remove();
+	// 	}, this), 1000);
+	// };
 
-	Plugin.prototype.replace = function (replacement) {
-		var startpos = this.$element.getCursorPosition();
+	// Plugin.prototype.replace = function (replacement) {
+	// 	var startpos = this.$element.getCursorPosition();
 
-		var fullStuff = this.getText();
-		var val = fullStuff.substring(0, startpos);
-		val = val.replace(this.expression, '$1' + this.options.token + replacement);
+	// 	var fullStuff = this.getText();
+	// 	var val = fullStuff.substring(0, startpos);
+	// 	val = val.replace(this.expression, '$1' + this.options.token + replacement);
 
-		var posfix = fullStuff.substring(startpos, fullStuff.length);
-		var separator = posfix.match(/^\s/) ? '' : ' ';
+	// 	var posfix = fullStuff.substring(startpos, fullStuff.length);
+	// 	var separator = posfix.match(/^\s/) ? '' : ' ';
 
-		var finalFight = val + separator + posfix;
-		this.setText(finalFight);
-		this.$element.setCursorPosition(val.length + 1);
-	};
+	// 	var finalFight = val + separator + posfix;
+	// 	this.setText(finalFight);
+	// 	this.$element.setCursorPosition(val.length + 1);
+	// };
 
-	Plugin.prototype.hightlightItem = function () {
-		this.$itemList.find(".-sew-list-item").removeClass("selected");
+	// Plugin.prototype.hightlightItem = function () {
+	// 	this.$itemList.find(".-sew-list-item").removeClass("selected");
 
-		var container = this.$itemList.find(".-sew-list-item").parent();
-		var element = this.filtered[this.index].element.addClass("selected");
+	// 	var container = this.$itemList.find(".-sew-list-item").parent();
+	// 	var element = this.filtered[this.index].element.addClass("selected");
 
-		var scrollPosition = element.position().top;
-		container.scrollTop(container.scrollTop() + scrollPosition);
-	};
+	// 	var scrollPosition = element.position().top;
+	// 	container.scrollTop(container.scrollTop() + scrollPosition);
+	// };
 
 	// Plugin.prototype.renderElements = function (values) {
 	// 	$("body").append(this.$itemList);
@@ -190,13 +190,13 @@
 	// 	return(this.$element.val() || this.$element.text());
 	// };
 
-	Plugin.prototype.setText = function (text) {
-		if(this.$element.is('input,textarea')) {
-			this.$element.val(text);
-		} else {
-			this.$element.html(text);
-		}
-	};
+	// Plugin.prototype.setText = function (text) {
+	// 	if(this.$element.is('input,textarea')) {
+	// 		this.$element.val(text);
+	// 	} else {
+	// 		this.$element.html(text);
+	// 	}
+	// };
 
 	// Plugin.prototype.onKeyUp = function (e) {
 	// 	var startpos = this.$element.getCursorPosition();
@@ -221,48 +221,48 @@
 	// 	}
 	// };
 
-	Plugin.prototype.onKeyDown = function (e) {
-		var listVisible = this.$itemList.is(":visible");
-		if(!listVisible || (Plugin.KEYS.indexOf(e.keyCode) < 0)) return;
+	// Plugin.prototype.onKeyDown = function (e) {
+	// 	var listVisible = this.$itemList.is(":visible");
+	// 	if(!listVisible || (Plugin.KEYS.indexOf(e.keyCode) < 0)) return;
 
-		switch(e.keyCode) {
-			case 9: // tab
-			case 13:  // return
-				this.select();
-				break;
-			case 40: // down arrow
-				this.next();
-				break;
-			case 38: // up arrow
-				this.prev();
-				break;
-			case 27: // esc
-				this.$itemList.hide();
-				this.dontFilter = true;
-				break;
-		}
+	// 	switch(e.keyCode) {
+	// 		case 9: // tab
+	// 		case 13:  // return
+	// 			this.select();
+	// 			break;
+	// 		case 40: // down arrow
+	// 			this.next();
+	// 			break;
+	// 		case 38: // up arrow
+	// 			this.prev();
+	// 			break;
+	// 		case 27: // esc
+	// 			this.$itemList.hide();
+	// 			this.dontFilter = true;
+	// 			break;
+	// 	}
 
-		e.preventDefault();
-	};
+	// 	e.preventDefault();
+	// };
 
-	Plugin.prototype.onItemClick = function (element, e) {
-		if(this.cleanupHandle) window.clearTimeout(this.cleanupHandle);
+	// Plugin.prototype.onItemClick = function (element, e) {
+	// 	if(this.cleanupHandle) window.clearTimeout(this.cleanupHandle);
 
-		this.replace(element.val);
-		this.$element.trigger('mention-selected',this.filtered[this.index]);
-		this.hideList();
-	};
+	// 	this.replace(element.val);
+	// 	this.$element.trigger('mention-selected',this.filtered[this.index]);
+	// 	this.hideList();
+	// };
 
-	Plugin.prototype.onItemHover = function (index, e) {
-		this.index = index;
-		this.hightlightItem();
-	};
+	// Plugin.prototype.onItemHover = function (index, e) {
+	// 	this.index = index;
+	// 	this.hightlightItem();
+	// };
 
-	$.fn[pluginName] = function (options) {
-		return this.each(function () {
-			if(!$.data(this, 'plugin_' + pluginName)) {
-				$.data(this, 'plugin_' + pluginName, new Plugin(this, options));
-			}
-		});
-	};
-}(jQuery, window));
+	// $.fn[pluginName] = function (options) {
+	// 	return this.each(function () {
+	// 		if(!$.data(this, 'plugin_' + pluginName)) {
+	// 			$.data(this, 'plugin_' + pluginName, new Plugin(this, options));
+	// 		}
+	// 	});
+	// };
+// }(jQuery, window));
