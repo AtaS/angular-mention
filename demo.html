@@ -9,13 +9,13 @@
   </head>
   <body>
     <!-- ng-trim: http://stackoverflow.com/questions/14958418/how-to-disable-trimming-of-inputs-in-angularjs -->
-    <div typeahead='userlist'><textarea ng-model='input' ng-trim='false'></textarea></div>
-    <div typeahead='userlist'><textarea ng-model='input' ng-trim='false'></textarea></div>
+    <div at-mention mention-model='input'><textarea ng-model='input' ng-trim='false'></textarea></div>
+    <div at-mention mention-model='input'><textarea ng-model='input' ng-trim='false'></textarea></div>
     <hr />
-    <div typeahead='userlist'><input ng-model='input' ng-trim='false' /></div>
-    <div typeahead='userlist'><input ng-model='input' ng-trim='false' /></div>
+    <div at-mention mention-model='input'><input ng-model='input' ng-trim='false' /></div>
+    <div at-mention mention-model='input'><input ng-model='input' ng-trim='false' /></div>
     <script>
-      angular.bootstrap(document.getElementsByTagName('body')[0],['angular-sew']);
+      angular.bootstrap(document.getElementsByTagName('body')[0],['angular-mention']);
     </script>
   </body>
 </html>
