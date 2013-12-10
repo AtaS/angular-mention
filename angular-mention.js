@@ -139,16 +139,11 @@ function xwordWrap(oContext, text, maxWidth) {
 }
 
 function wordWrap(oContext, text, maxWidth) {
-    var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+      
-    var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
-    // Extra space after word for mozilla and ie
-    var padding = (isFirefox || isIE) ? '  ' : ' ';
-
     var textLines = text.split('\n');
     var mockText = [];
 
     var padText = function (str) {
-      return str + padding;
+      return str + ' ';
     };
 
     var measure = function (str) {
