@@ -117,12 +117,12 @@ at_mention.service('mention_input', function () {
   };
 });
 
-// var CSS_CONSTANTS = {
-//   container: '-mention-list-container',
-//   list: '-mention-list',
-//   listItem: '-mention-list-item',
-//   selected: '-mention-selected'
-// };
+var CSS_CONSTANTS = {
+  container: '-mention-list-container',
+  list: '-mention-list',
+  listItem: '-mention-list-item',
+  selected: '-mention-selected'
+};
 
 var LIST_DATA = {
   token: 'nickname',
@@ -130,11 +130,11 @@ var LIST_DATA = {
   id: 'nid'
 };
 
-var LIST_DATA = {
-  token: 'field_email',
-  longform: 'node_title',
-  id: 'nid'
-};
+// var LIST_DATA = {
+//   token: 'field_email',
+//   longform: 'node_title',
+//   id: 'nid'
+// };
 
 
 var LIST_ITEM_TEMPLATE = '<div><span>@{{v.' + LIST_DATA.token + '}}</span>&nbsp;<small>({{v.' + LIST_DATA.longform + '}})</small></div>';
@@ -234,8 +234,8 @@ at_mention.directive('atMention', function () {
         var newText = before + TOKEN + selection + after;
 
         setText($textElement, newText);
-
         setCaretToPos($textElement, $scope.cursorPos + selection.length);
+        $scope.$$nextSibling.$eval($scope.mentionModel + '="' + newText.replace('"','\\"') + '"');
         $scope.hideList();
       };
 
