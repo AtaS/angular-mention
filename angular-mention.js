@@ -48,94 +48,18 @@ function setCaretToPos (input, pos) {
 function scrollMeasure() {
     // Create the measurement node
     var scrollDiv = document.createElement('div');
-    scrollDiv.className = 'scrollbar-measure';
+    //scrollDiv.className = 'scrollbar-measure';
+    scrollDiv.style.width = '100px';
+    scrollDiv.style.height = '100px';
+    scrollDiv.style.overflow = 'scroll';
+    scrollDiv.style.position = 'absolute';
+    scrollDiv.style.top = '-9999px';
     document.body.appendChild(scrollDiv);
     // Get the scrollbar width
     var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
     // Delete the DIV
     document.body.removeChild(scrollDiv);
     return scrollbarWidth;
-}
-
-
-// http://stackoverflow.com/a/11124580/14651
-// http://stackoverflow.com/a/3960916/14651
-function xwordWrap(oContext, text, maxWidth) {
-  console.log('oContext', oContext);
-  console.log('text', text);
-  console.log('maxWidth', maxWidth);
-
-    var aSplit = text.split(' ');
-    var aLines = [];
-    var sLine  = '';
-
-    //http://stackoverflow.com/a/9847580/
-      //var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-        // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
-      //var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-        // At least Safari 3+: "[object HTMLElementConstructor]"
-      //var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
-
-    var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+      
-    var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
-    // Extra space after word for mozilla and ie
-    var sWithSpace = (isFirefox || isIE) ? ' ' : '';
-
-    // Split words by newlines
-    var aWords = [];
-    for (var i in aSplit) {
-        var aWord = aSplit[i].split('\n');
-        if (aWord.length > 1) {
-            for (var j in aWord) {
-                aWords.push(aWord[j]);
-                aWords.push('\n');
-            }
-
-            aWords.pop();
-        } else {
-            aWords.push(aSplit[i]);
-        }
-    }
-    while (aWords.length > 0) {
-        var sWord = aWords[0];
-        if (sWord == '\n') {
-            aLines.push(sLine);
-            aWords.shift();
-            sLine = '';
-        } else {
-
-            // Break up work longer than max width
-            var iItemWidth = oContext.measureText(sWord).width;
-
-            if (iItemWidth > maxWidth) {
-                var sContinuous = '';
-                var iWidth = 0;
-                while (iWidth <= maxWidth) {
-                    var sNextLetter = sWord.substring(0, 1);
-                    var iNextWidth  = oContext.measureText(sContinuous + sNextLetter).width;
-                    if (iNextWidth <= maxWidth) {
-                        sContinuous += sNextLetter;
-                        sWord = sWord.substring(1);
-                    }
-                    iWidth = iNextWidth;
-                }
-                aWords.unshift(sContinuous);
-            }
-
-            var iNewLineWidth = oContext.measureText(sLine + sWord + sWithSpace).width;
-            if (iNewLineWidth <= maxWidth) {  // word fits on current line to add it and carry on
-                sLine += aWords.shift() + ' ';
-            } else {
-                aLines.push(sLine);
-                sLine = '';
-            }
-
-            if (aWords.length === 0) {
-                aLines.push(sLine);
-            }
-        }
-    }
-    return aLines;
 }
 
 function wordWrap(oContext, text, maxWidth) {
@@ -146,19 +70,29 @@ function wordWrap(oContext, text, maxWidth) {
       return str + ' ';
     };
 
+    //http://stackoverflow.com/a/9847580/
+    var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+    var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+
     var measure = function (str) {
+      // Firefox (and I think IE) seems to believe it can fit more characters
+      // on the canvas than it can in the textarea. So, we add one space, when
+      // measuring if the text will fit.
+      if (isFirefox || isIE) {
+        str = padText(str);
+      }
       return oContext.measureText(str).width;
     };
 
     textLines.forEach(function(line, i) {
         while (measure(line) > maxWidth) {
-          fragLine = line;
+          var fragLine = line;
           while (measure(fragLine) > maxWidth) {
             var stop = (fragLine.indexOf(' ') !== -1) ? fragLine.lastIndexOf(' ') : fragLine.length - 1;
             fragLine = fragLine.substring(0, stop);
           }
           mockText.push(padText(fragLine));
-          line = line.slice(fragLine.length + 1);
+          line = line.slice(fragLine.length);
         }
         mockText.push(padText(line));
     });
@@ -183,12 +117,12 @@ at_mention.service('mention_input', function () {
   };
 });
 
-var CSS_CONSTANTS = {
-  container: '-mention-list-container',
-  list: '-mention-list',
-  listItem: '-mention-list-item',
-  selected: '-mention-selected'
-};
+// var CSS_CONSTANTS = {
+//   container: '-mention-list-container',
+//   list: '-mention-list',
+//   listItem: '-mention-list-item',
+//   selected: '-mention-selected'
+// };
 
 var LIST_DATA = {
   token: 'nickname',
@@ -196,11 +130,11 @@ var LIST_DATA = {
   id: 'nid'
 };
 
-// var LIST_DATA = {
-//   token: 'field_email',
-//   longform: 'node_title',
-//   id: 'nid'
-// };
+var LIST_DATA = {
+  token: 'field_email',
+  longform: 'node_title',
+  id: 'nid'
+};
 
 
 var LIST_ITEM_TEMPLATE = '<div><span>@{{v.' + LIST_DATA.token + '}}</span>&nbsp;<small>({{v.' + LIST_DATA.longform + '}})</small></div>';
@@ -324,15 +258,18 @@ at_mention.directive('atMention', function () {
         $scope.$itemList.style.display = 'block';
         $scope.focusIndex = false;
 
-        var cursorXY = angular.extend({left: 0, top: 0}, $scope.getCursorXY());
-        var offset = {
-          left: cursorXY.left + 5,
-          top: cursorXY.top + 20
-        };
-        //$scope.$itemList.style.left = $scope.textElement.offsetLeft + 'px';
-        //$scope.$itemList.style.top = ($scope.textElement.offsetTop + $scope.textElement.offsetHeight) + 'px';
-        $scope.$itemList.style.left = offset.left + 'px';
-        $scope.$itemList.style.top = offset.top + 'px';
+        if ($scope.multiLine) {
+          var cursorXY = angular.extend({left: 0, top: 0}, $scope.getCursorXY());
+          var offset = {
+            left: cursorXY.left + 5 + window.scrollX,
+            top: cursorXY.top + 20 + window.scrollY
+          };
+          $scope.$itemList.style.left = offset.left + 'px';
+          $scope.$itemList.style.top = offset.top + 'px';
+        } else {
+          $scope.$itemList.style.left = $scope.textElement.offsetLeft + 'px';
+          $scope.$itemList.style.top = ($scope.textElement.offsetTop + $scope.textElement.offsetHeight) + 'px';
+        }
 
         var lis = $scope.getChoices();
         lis.removeClass(CSS_CONSTANTS.selected);
@@ -351,50 +288,57 @@ at_mention.directive('atMention', function () {
 
         var styles = getComputedStyle(oTextArea);
 
-        oCanvas.width  = parseFloat(styles.width.replace(/[^0-9.]/g, ''));
-        oCanvas.height = parseFloat(styles.height.replace(/[^0-9.]/g, ''));
+        var textAreaHeight = parseFloat(styles.height.replace(/[^0-9.]/g, ''));
+        var textAreaWidth = parseFloat(styles.width.replace(/[^0-9.]/g, ''));
+        if (styles.boxSizing === 'border-box') {
+          var topPadding = parseFloat(styles.paddingTop.replace(/[^0-9.]/g, ''));
+          var bottomPadding = parseFloat(styles.paddingBottom.replace(/[^0-9.]/g, ''));
+          var topBorder = parseFloat(styles.borderTopWidth.replace(/[^0-9.]/g, ''));
+          var bottomBorder = parseFloat(styles.borderBottomWidth.replace(/[^0-9.]/g, ''));
+          textAreaHeight = textAreaHeight - topPadding - bottomPadding - topBorder - bottomBorder;
+
+          var leftPadding = parseFloat(styles.paddingLeft.replace(/[^0-9.]/g, ''));
+          var rightPadding = parseFloat(styles.paddingRight.replace(/[^0-9.]/g, ''));
+          var leftBorder = parseFloat(styles.borderLeftWidth.replace(/[^0-9.]/g, ''));
+          var rightBorder = parseFloat(styles.borderRightWidth.replace(/[^0-9.]/g, ''));
+          textAreaWidth = textAreaWidth - leftPadding - rightPadding - leftBorder - rightBorder;
+        }
+
+
+        oCanvas.width  = textAreaWidth;
+        oCanvas.height = textAreaHeight;
 
         var oContext    = oCanvas.getContext('2d');
         var sFontSize   = styles.fontSize;
-        var sLineHeight = (styles.lineHeight === 'normal') ? '12px' : styles.lineHeight;
+        var sLineHeight = styles.lineHeight;
+
         var sFontWeight = (styles.fontWeight === 'normal') ? 400 : styles.fontWeight;
         var sFontFamily = styles.fontFamily;
-        var fontSize    = parseFloat(sFontSize.replace(/[^0-9.]/g, ''));
-        var lineHeight  = parseFloat(sLineHeight.replace(/[^0-9.]/g, ''));
         var sFont       = [sFontWeight, sFontSize + '/' + sLineHeight, sFontFamily].join(' ');
 
-        var iSubtractScrollWidth = (oTextArea.clientHeight < oTextArea.scrollHeight) ? $scope.iScrollWidth : 0;
+        var iSubtractScrollWidth = (textAreaHeight < oTextArea.scrollHeight) ? $scope.iScrollWidth : 0;
+
+        var fontSize    = parseFloat(sFontSize.replace(/[^0-9.]/g, ''));
+        var lineHeight  = parseFloat(sLineHeight.replace(/[^0-9.]/g, ''));
+
+        if (isNaN(lineHeight)) {
+          if (oTextArea.rows) {
+            lineHeight = textAreaHeight / oTextArea.rows;
+          } else {
+            // This is an approximation
+            lineHeight = Math.floor(fontSize * 1.2);
+          }
+        }
 
         oContext.save();
         oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
         oContext.font = sFont;
-        var aLines = wordWrap(oContext, sContent, oCanvas.width - iSubtractScrollWidth);
-        console.log('aLines', aLines);
 
-        var x = 0;
-        var y = 0;
-        var iGoal = oTextArea.selectionEnd;
-        angular.forEach(aLines, function(sLine, i) {
-            if (iGoal > 0) {
-                oContext.fillText(sLine.substring(0, iGoal), 0, (i + 1) * lineHeight);
-
-                x = oContext.measureText(sLine.substring(0, iGoal + 1)).width;
-                y = i * lineHeight - oTextArea.scrollTop;
-
-                var iLineLength = sLine.length;
-                if (iLineLength == 0) {
-                    iLineLength = 1;
-                }
-
-                iGoal -= iLineLength;
-            } else {
-                // after
-            }
-        });
-        oContext.restore();
-
+        var lines = wordWrap(oContext, sContent.substring(0, oTextArea.selectionEnd), textAreaWidth - iSubtractScrollWidth);
+        var y = (lines.length - 1) * lineHeight - oTextArea.scrollTop;
+        var x = oContext.measureText(lines.pop()).width;
         return {left: oPosition.left + x, top: oPosition.top + y};
-      }
+      };
 
 
       var eventHandlers = {};
@@ -481,15 +425,14 @@ at_mention.directive('atMention', function () {
       }
 
       $scope.$itemList = angular.element($element[0].querySelector('.' + CSS_CONSTANTS.container))[0];
-//      console.log('$element.children()', $element.children());
+
       $scope.canvas = $element.children()[0];
       $scope.textElement = $element.children()[2].children[0];
+      $scope.multiLine = ($scope.textElement.nodeName.toUpperCase() === 'TEXTAREA') ? true : false;
       $scope.$$nextSibling.$watch($scope.mentionModel, function (newVal, oldVal) {
         if (typeof newVal === 'undefined') {
           return;
         }
-
-//        console.log('$watch [' + $scope.mentionModel + ']', {newVal: newVal, oldVal: oldVal});
 
         var cursorPos = getCursorPos($scope.textElement).start;
         var text = newVal.substring(0, cursorPos);
@@ -516,7 +459,6 @@ at_mention.directive('atMention', function () {
           // Filter List
           $scope.mention = matches[2];
           $scope.find = TOKEN + matches[2];
-//          console.log('cursorPos', cursorPos);
           $scope.cursorPos = cursorPos;
         }
 
