@@ -148,6 +148,39 @@
                 return aLines;
             }
 
+            function myWordWrap(oContext, text, maxWidth) {
+                var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+      
+                var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+                // Extra space after word for mozilla and ie
+                var padding = (isFirefox || isIE) ? '  ' : ' ';
+
+                var textLines = text.split('\n');
+                var mockText = [];
+
+                var padText = function (str) {
+                  return str + padding;
+                };
+
+                var measure = function (str) {
+                  return oContext.measureText(str).width;
+                };
+
+                textLines.forEach(function(line, i) {
+                    while (measure(line) > maxWidth) {
+                      fragLine = line;
+                      while (measure(fragLine) > maxWidth) {
+                        var stop = (fragLine.indexOf(' ') !== -1) ? fragLine.lastIndexOf(' ') : fragLine.length - 1;
+                        fragLine = fragLine.substring(0, stop);
+                      }
+                      mockText.push(padText(fragLine));
+                      line = line.slice(fragLine.length + 1);
+                    }
+                    mockText.push(padText(line));
+                });
+
+                return mockText;
+            }
+
             // http://davidwalsh.name/detect-scrollbar-width
             function scrollMeasure() {
                 // Create the measurement node
@@ -185,7 +218,7 @@
                 oContext.save();
                 oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
                 oContext.font = sFont;
-                var aLines = wordWrap(oContext, sContent, oCanvas.width - iSubtractScrollWidth);
+                var aLines = myWordWrap(oContext, sContent, oCanvas.width - iSubtractScrollWidth);
 
                 var x = 0;
                 var y = 0;

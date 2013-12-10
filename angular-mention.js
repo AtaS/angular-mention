@@ -60,10 +60,26 @@ function scrollMeasure() {
 
 // http://stackoverflow.com/a/11124580/14651
 // http://stackoverflow.com/a/3960916/14651
-function wordWrap(oContext, text, maxWidth) {
+function xwordWrap(oContext, text, maxWidth) {
+  console.log('oContext', oContext);
+  console.log('text', text);
+  console.log('maxWidth', maxWidth);
+
     var aSplit = text.split(' ');
     var aLines = [];
     var sLine  = '';
+
+    //http://stackoverflow.com/a/9847580/
+      //var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+        // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+      //var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+        // At least Safari 3+: "[object HTMLElementConstructor]"
+      //var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+
+    var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+      
+    var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+    // Extra space after word for mozilla and ie
+    var sWithSpace = (isFirefox || isIE) ? ' ' : '';
 
     // Split words by newlines
     var aWords = [];
@@ -80,7 +96,6 @@ function wordWrap(oContext, text, maxWidth) {
             aWords.push(aSplit[i]);
         }
     }
-
     while (aWords.length > 0) {
         var sWord = aWords[0];
         if (sWord == '\n') {
@@ -88,8 +103,10 @@ function wordWrap(oContext, text, maxWidth) {
             aWords.shift();
             sLine = '';
         } else {
+
             // Break up work longer than max width
             var iItemWidth = oContext.measureText(sWord).width;
+
             if (iItemWidth > maxWidth) {
                 var sContinuous = '';
                 var iWidth = 0;
@@ -105,17 +122,6 @@ function wordWrap(oContext, text, maxWidth) {
                 aWords.unshift(sContinuous);
             }
 
-            //http://stackoverflow.com/a/9847580/
-            //var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-                // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
-            var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
-            //var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-                // At least Safari 3+: "[object HTMLElementConstructor]"
-            //var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
-            var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
-
-            // Extra space after word for mozilla and ie
-            var sWithSpace = (isFirefox || isIE) ? ' ' : '';
             var iNewLineWidth = oContext.measureText(sLine + sWord + sWithSpace).width;
             if (iNewLineWidth <= maxWidth) {  // word fits on current line to add it and carry on
                 sLine += aWords.shift() + ' ';
@@ -130,6 +136,39 @@ function wordWrap(oContext, text, maxWidth) {
         }
     }
     return aLines;
+}
+
+function wordWrap(oContext, text, maxWidth) {
+    var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+      
+    var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+    // Extra space after word for mozilla and ie
+    var padding = (isFirefox || isIE) ? '  ' : ' ';
+
+    var textLines = text.split('\n');
+    var mockText = [];
+
+    var padText = function (str) {
+      return str + padding;
+    };
+
+    var measure = function (str) {
+      return oContext.measureText(str).width;
+    };
+
+    textLines.forEach(function(line, i) {
+        while (measure(line) > maxWidth) {
+          fragLine = line;
+          while (measure(fragLine) > maxWidth) {
+            var stop = (fragLine.indexOf(' ') !== -1) ? fragLine.lastIndexOf(' ') : fragLine.length - 1;
+            fragLine = fragLine.substring(0, stop);
+          }
+          mockText.push(padText(fragLine));
+          line = line.slice(fragLine.length + 1);
+        }
+        mockText.push(padText(line));
+    });
+
+    return mockText;
 }
 
 
@@ -290,7 +329,7 @@ at_mention.directive('atMention', function () {
         $scope.$itemList.style.display = 'block';
         $scope.focusIndex = false;
 
-        var cursorXY = $scope.getCursorXY();
+        var cursorXY = angular.extend({left: 0, top: 0}, $scope.getCursorXY());
         var offset = {
           left: cursorXY.left + 5,
           top: cursorXY.top + 20
@@ -335,11 +374,12 @@ at_mention.directive('atMention', function () {
         oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
         oContext.font = sFont;
         var aLines = wordWrap(oContext, sContent, oCanvas.width - iSubtractScrollWidth);
+        console.log('aLines', aLines);
 
         var x = 0;
         var y = 0;
         var iGoal = oTextArea.selectionEnd;
-        aLines.forEach(function(sLine, i) {
+        angular.forEach(aLines, function(sLine, i) {
             if (iGoal > 0) {
                 oContext.fillText(sLine.substring(0, iGoal), 0, (i + 1) * lineHeight);
 
