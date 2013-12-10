@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <title>Tooltip 2</title>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script type="text/javascript" src="jquery-fieldselection.js"></script>
+        <style type="text/css">
+            form {
+                float: left;
+                margin: 20px;
+            }
+
+            #textariffic {
+                height: 400px;
+                width: 300px;
+                font-size: 12px;
+                font-family: 'Arial';
+                line-height: 12px;
+            }
+
+            #tip {
+                width:5px;
+                height:30px;
+                background-color: #777;
+                position: absolute;
+                z-index:10000
+            }
+
+            #mock-text {
+                float: left;
+                margin: 20px;
+                border: 1px inset #ccc;
+            }
+
+            /* way the hell off screen */
+            .scrollbar-measure {
+                width: 100px;
+                height: 100px;
+                overflow: scroll;
+                position: absolute;
+                top: -9999px;
+            }
+
+            #randomize {
+                float: left;
+                display: block;
+            }
+        </style>
+        <script type="text/javascript">
+            var oCanvas;
+            var oTextArea;
+            var $oTextArea;
+            var iScrollWidth;
+
+            $(function() {
+                iScrollWidth = scrollMeasure();
+                oCanvas      = document.getElementById('mock-text');
+                oTextArea    = document.getElementById('textariffic');
+                $oTextArea   = $(oTextArea);
+
+                $oTextArea
+                        .keyup(update)
+                        .mouseup(update)
+                        .scroll(update);
+
+                $('#randomize').bind('click', randomize);
+
+                update();
+            });
+
+            function randomize() {
+                var aFonts      = ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Impact', 'Times New Roman', 'Verdana', 'Webdings'];
+                var iFont       = Math.floor(Math.random() * aFonts.length);
+                var iWidth      = Math.floor(Math.random() * 500) + 300;
+                var iHeight     = Math.floor(Math.random() * 500) + 300;
+                var iFontSize   = Math.floor(Math.random() * 18)  + 10;
+                var iLineHeight = Math.floor(Math.random() * 18)  + 10;
+
+                var oCSS = {
+                    'font-family':  aFonts[iFont],
+                    width:          iWidth + 'px',
+                    height:         iHeight + 'px',
+                    'font-size':    iFontSize + 'px',
+                    'line-height':  iLineHeight + 'px'
+                };
+
+                console.log(oCSS);
+
+                $oTextArea.css(oCSS);
+
+                update();
+                return false;
+            }
+
+            function showTip(x, y) {
+                $('#tip').css({
+                      left: x + 'px',
+                      top: y + 'px'
+                  });
+            }
+
+            // http://stackoverflow.com/a/11124580/14651
+            // http://stackoverflow.com/a/3960916/14651
+
+            function wordWrap(oContext, text, maxWidth) {
+                var aSplit = text.split(' ');
+                var aLines = [];
+                var sLine  = "";
+
+                // Split words by newlines
+                var aWords = [];
+                for (var i in aSplit) {
+                    var aWord = aSplit[i].split('\n');
+                    if (aWord.length > 1) {
+                        for (var j in aWord) {
+                            aWords.push(aWord[j]);
+                            aWords.push("\n");
+                        }
+
+                        aWords.pop();
+                    } else {
+                        aWords.push(aSplit[i]);
+                    }
+                }
+
+                while (aWords.length > 0) {
+                    var sWord = aWords[0];
+                    if (sWord == "\n") {
+                        aLines.push(sLine);
+                        aWords.shift();
+                        sLine = "";
+                    } else {
+                        // Break up work longer than max width
+                        var iItemWidth = oContext.measureText(sWord).width;
+                        if (iItemWidth > maxWidth) {
+                            var sContinuous = '';
+                            var iWidth = 0;
+                            while (iWidth <= maxWidth) {
+                                var sNextLetter = sWord.substring(0, 1);
+                                var iNextWidth  = oContext.measureText(sContinuous + sNextLetter).width;
+                                if (iNextWidth <= maxWidth) {
+                                    sContinuous += sNextLetter;
+                                    sWord = sWord.substring(1);
+                                }
+                                iWidth = iNextWidth;
+                            }
+                            aWords.unshift(sContinuous);
+                        }
+
+                        // Extra space after word for mozilla and ie
+                        var sWithSpace = (jQuery.browser.mozilla || jQuery.browser.msie) ? ' ' : '';
+                        var iNewLineWidth = oContext.measureText(sLine + sWord + sWithSpace).width;
+                        if (iNewLineWidth <= maxWidth) {  // word fits on current line to add it and carry on
+                            sLine += aWords.shift() + " ";
+                        } else {
+                            aLines.push(sLine);
+                            sLine = "";
+                        }
+
+                        if (aWords.length === 0) {
+                            aLines.push(sLine);
+                        }
+                    }
+                }
+                return aLines;
+            }
+
+            // http://davidwalsh.name/detect-scrollbar-width
+            function scrollMeasure() {
+                // Create the measurement node
+                var scrollDiv = document.createElement("div");
+                scrollDiv.className = "scrollbar-measure";
+                document.body.appendChild(scrollDiv);
+
+                // Get the scrollbar width
+                var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+
+                // Delete the DIV
+                document.body.removeChild(scrollDiv);
+
+                return scrollbarWidth;
+            }
+
+            function update() {
+                var oPosition  = $oTextArea.position();
+                var sContent   = $oTextArea.val();
+                var oSelection = $oTextArea.getSelection();
+
+                oCanvas.width  = $oTextArea.width();
+                oCanvas.height = $oTextArea.height();
+
+                var oContext    = oCanvas.getContext("2d");
+                var sFontSize   = $oTextArea.css('font-size');
+                var sLineHeight = $oTextArea.css('line-height');
+                var fontSize    = parseFloat(sFontSize.replace(/[^0-9.]/g, ''));
+                var lineHeight  = parseFloat(sLineHeight.replace(/[^0-9.]/g, ''));
+                var sFont       = [$oTextArea.css('font-weight'), sFontSize + '/' + sLineHeight, $oTextArea.css('font-family')].join(' ');
+
+                var iSubtractScrollWidth = oTextArea.clientHeight < oTextArea.scrollHeight ? iScrollWidth : 0;
+
+                oContext.save();
+                oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
+                oContext.font = sFont;
+                var aLines = wordWrap(oContext, sContent, oCanvas.width - iSubtractScrollWidth);
+
+                var x = 0;
+                var y = 0;
+                var iGoal = oSelection.end;
+                aLines.forEach(function(sLine, i) {
+                    if (iGoal > 0) {
+                        oContext.fillText(sLine.substring(0, iGoal), 0, (i + 1) * lineHeight);
+
+                        x = oContext.measureText(sLine.substring(0, iGoal + 1)).width;
+                        y = i * lineHeight - oTextArea.scrollTop;
+
+                        var iLineLength = sLine.length;
+                        if (iLineLength == 0) {
+                            iLineLength = 1;
+                        }
+
+                        iGoal -= iLineLength;
+                    } else {
+                        // after
+                    }
+                });
+                oContext.restore();
+
+                showTip(oPosition.left + x, oPosition.top + y);
+            }
+
+        </script>
+    </head>
+    <body>
+
+        <a href="#" id="randomize">Randomize</a>
+
+        <form id="tipper">
+            <textarea id="textariffic">Aliquam urna. Nullam augue dolor, tincidunt condimentum, malesuada quis, ultrices at, arcu. Aliquam nunc pede, convallis auctor, sodales eget, aliquam eget, ligula. Proin nisi lacus, scelerisque nec, aliquam vel, dictum mattis, eros. Curabitur et neque. Fusce sollicitudin. Quisque at risus. Suspendisse potenti. Mauris nisi. Sed sed enim nec dui viverra congue. Phasellus velit sapien, porttitor vitae, blandit volutpat, interdum vel, enim. Cras sagittis bibendum neque. Proin eu est. Fusce arcu. Aliquam elit nisi, malesuada eget, dignissim sed, ultricies vel, purus. Maecenas accumsan diam id nisi.
+
+Phasellus et nunc. Vivamus sem felis, dignissim non, lacinia id, accumsan quis, ligula. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Sed scelerisque nulla sit amet mi. Nulla consequat, elit vitae tempus vulputate, sem libero rhoncus leo, vulputate viverra nulla purus nec turpis. Nam turpis sem, tincidunt non, congue lobortis, fermentum a, ipsum. Nulla facilisi. Aenean facilisis. Maecenas a quam eu nibh lacinia ultricies. Morbi malesuada orci quis tellus.
+
+Sed eu leo. Donec in turpis. Donec non neque nec ante tincidunt posuere. Pellentesque blandit. Ut vehicula vestibulum risus. Maecenas commodo placerat est. Integer massa nunc, luctus at, accumsan non, pulvinar sed, odio. Pellentesque eget libero iaculis dui iaculis vehicula. Curabitur quis nulla vel felis ullamcorper varius. Sed suscipit pulvinar lectus.</textarea>
+
+        </form>
+
+        <div id="tip"></div>
+
+        <canvas id="mock-text"></canvas>
+    </body>
+</html>
