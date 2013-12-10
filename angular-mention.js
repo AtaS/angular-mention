@@ -1,6 +1,6 @@
 function getCursorPos (input) {
   //http://stackoverflow.com/questions/7745867/how-do-you-get-the-cursor-position-in-a-textarea
-  if (input.hasOwnProperty('selectionStart') && document.activeElement === input) {
+  if ( ('selectionStart' in input) && document.activeElement === input) {
     return {
       start: input.selectionStart,
       end: input.selectionEnd
@@ -133,12 +133,11 @@ at_mention.directive('atMention', function () {
       };
 
       $scope.onhover = function (obj) {
-        if (obj.hasOwnProperty('originalEvent')) {
+        if ('originalEvent' in obj) {
           obj = obj.originalEvent;
         }
-        //console.log('obj', obj);
 
-        var source = angular.element(obj.srcElement);
+        var source = angular.element(obj.target);
         if (!source.hasClass(CSS_CONSTANTS.listItem)) {
           return;
         }
@@ -203,9 +202,8 @@ at_mention.directive('atMention', function () {
         $scope.$itemList.style.display = 'block';
         $scope.focusIndex = false;
 
-        var offset = $scope.element.getBoundingClientRect();
-        $scope.$itemList.style.left = offset.left + 'px';
-        $scope.$itemList.style.top = offset.bottom + 'px';
+        $scope.$itemList.style.left = $scope.textElement.offsetLeft + 'px';
+        $scope.$itemList.style.top = ($scope.textElement.offsetTop + $scope.textElement.offsetHeight) + 'px';
         var lis = $scope.getChoices();
         lis.removeClass(CSS_CONSTANTS.selected);
       };
@@ -298,11 +296,14 @@ at_mention.directive('atMention', function () {
       }
 
       $scope.$itemList = angular.element($element[0].querySelector('.' + CSS_CONSTANTS.container))[0];
-      $scope.textElement = $element[0].children[1].children[0];
+      console.log('$element.children()', $element.children());
+      $scope.textElement = $element.children()[1].children[0];
       $scope.$$nextSibling.$watch($scope.mentionModel, function (newVal, oldVal) {
         if (typeof newVal === 'undefined') {
           return;
         }
+
+        console.log('$watch [' + $scope.mentionModel + ']', {newVal: newVal, oldVal: oldVal});
 
         var cursorPos = getCursorPos($scope.textElement).start;
         var text = newVal.substring(0, cursorPos);
@@ -329,6 +330,7 @@ at_mention.directive('atMention', function () {
           // Filter List
           $scope.mention = matches[2];
           $scope.find = TOKEN + matches[2];
+          console.log('cursorPos', cursorPos);
           $scope.cursorPos = cursorPos;
         }
 
